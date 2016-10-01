@@ -61,13 +61,13 @@ newAppHandler request = do
     return $ NewAppResponse $ Left $ NewAppError "Unimplemented"
 
 
-updateHandler :: Omni app => AppID -> UpdateRequest -> app UpdateResponse
+updateHandler :: Omni app => Int -> UpdateRequest -> app UpdateResponse
 updateHandler appID request = do
     $logDebugSH appID
     $logDebugSH request
     return $ UpdateResponse $ Left $ UpdateError "Unimplemented"
 
-queryHandler :: Omni app => AppID -> QueryRequest -> app QueryResponse
+queryHandler :: Omni app => Int -> QueryRequest -> app QueryResponse
 queryHandler appID request = do
     $logDebugSH appID
     $logDebugSH request

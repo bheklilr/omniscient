@@ -1,41 +1,30 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE EmptyDataDecls             #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE QuasiQuotes                #-}
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeFamilies               #-}
 module Omniscient.Server.Models where
 
-import              GHC.Generics
+import           Data.Time
+import           Database.Persist.TH
 
-import              Data.Map (Map)
-import              Data.Time
-
-import qualified    Data.Text as T
-import              Data.Text (Text)
-import              Data.Aeson
-
-import Database.Persist.TH
-import Database.Persist.Sql
-
-import Omniscient.Server.Types
+import           Omniscient.Server.Types
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 App
     appID   Int
-    appName Text
-    deriving Eq Show Generic
+    appName String
+    deriving Show
 
 Event
     eventApp    AppId
-    eventName   Text
+    eventName   String
     eventType   Evt
-    eventValue  Text
+    eventValue  String
     eventTime   UTCTime default=CURRENT_TIME
-    eventOrigin Text
-    deriving Eq Show Generic
+    eventOrigin String
 |]
