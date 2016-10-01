@@ -2,3 +2,4 @@ dist
 dist-*
 .cabal-sandbox/
 .stack-work/
+omniscient.db
