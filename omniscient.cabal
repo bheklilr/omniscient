@@ -20,7 +20,7 @@ library
                         Omniscient.Server.API,
                         Omniscient.Server.Types,
                         Omniscient.Server.Models
-    ghc-options:        -Wall
+    ghc-options:        -Wall -Wno-partial-type-signatures
     build-depends:      base >= 4.7 && < 5,
                         time,
                         free,
