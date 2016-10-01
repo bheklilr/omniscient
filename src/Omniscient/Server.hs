@@ -75,10 +75,17 @@ sql = (ask >>=) . liftSqlPersistMPool
 
 newAppHandler :: Omni app => NewAppRequest -> SockAddr -> app NewAppResponse
 newAppHandler request host = do
-    $logDebug "Attempting to set up new application"
-    appId <- sql $ insert $ App (request & appName) (show host)
-    $logDebug "New application set up"
-    return $ NewAppResponse $ Right $ fromSqlKey appId
+    $logDebug "Checking if application already exists"
+    existingEntity <- sql $ getBy $ UniqueApp (request & appName)
+    case existingEntity of
+        Just appID -> do
+            $logDebug "Application already exists, returning existing appID"
+            return $ NewAppResponse $ return $ fromSqlKey $ entityKey appID
+        Nothing -> do
+            $logDebug "Attempting to set up new application"
+            appID <- sql $ insert $ App (request & appName) (show host)
+            $logDebug "New application set up"
+            return $ NewAppResponse $ return $ fromSqlKey appID
 
 
 updateHandler :: Omni app => Int64 -> UpdateRequest -> SockAddr -> app UpdateResponse
