@@ -5,9 +5,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeOperators #-}
-module Omniscient.Server
-    ( runOmniscientServer
-    ) where
+module Omniscient.Server where
 
 import Control.Monad.Reader
 import Control.Monad.Logger
@@ -58,14 +56,13 @@ instance MonadIO m => Omni (OmniscientT m) where
 
 newAppHandler :: Omni app => NewAppRequest -> SockAddr -> app NewAppResponse
 newAppHandler request host = do
-    $logDebugSH request
+    $logDebugSH (request, host)
     return $ NewAppResponse $ Left $ NewAppError "Unimplemented"
 
 
 updateHandler :: Omni app => Int -> UpdateRequest -> SockAddr -> app UpdateResponse
 updateHandler appID request host = do
-    $logDebugSH appID
-    $logDebugSH request
+    $logDebugSH (appID, request, host)
     return $ UpdateResponse $ Left $ UpdateError "Unimplemented"
 
 queryHandler :: Omni app => Int -> QueryRequest -> app QueryResponse
