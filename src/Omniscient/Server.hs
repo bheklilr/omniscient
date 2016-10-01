@@ -14,7 +14,7 @@ module Omniscient.Server
     , runOmniscientServer
     , OmniscientT
     , Omni
-    , sql
+    , db
     , newAppHandler
     , updateHandler
     , queryHandler
@@ -70,20 +70,20 @@ class
     ) => Omni m where
 instance MonadIO m => Omni (OmniscientT m)
 
-sql :: Omni app => _ -> app a
-sql = (ask >>=) . liftSqlPersistMPool
+db :: Omni app => _ -> app a
+db = (ask >>=) . liftSqlPersistMPool
 
 newAppHandler :: Omni app => NewAppRequest -> SockAddr -> app NewAppResponse
 newAppHandler request host = do
     $logDebug "Checking if application already exists"
-    existingEntity <- sql $ getBy $ UniqueApp (request & appName)
+    existingEntity <- db.getBy $ UniqueApp (request & appName)
     case existingEntity of
         Just appID -> do
             $logDebug "Application already exists, returning existing appID"
             return $ NewAppResponse $ return $ fromSqlKey $ entityKey appID
         Nothing -> do
             $logDebug "Attempting to set up new application"
-            appID <- sql $ insert $ App (request & appName) (show host)
+            appID <- db.insert $ App (request & appName) (show host)
             $logDebug "New application set up"
             return $ NewAppResponse $ return $ fromSqlKey appID
 
