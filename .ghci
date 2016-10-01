@@ -1,0 +1,20 @@
+:seti -XPackageImports
+:seti -XOverloadedStrings
+:seti -XScopedTypeVariables
+:seti -XRankNTypes
+
+import Data.Maybe
+import Data.List
+import Data.Bool
+
+import qualified Data.Text as Text
+import           Data.Text (Text)
+import qualified Data.Map as Map
+import           Data.Map (Map)
+
+:set prompt "λ: "
+:set prompt2 " | "
+
+:set +m
+:set +s
+:set +t
