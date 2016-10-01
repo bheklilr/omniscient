@@ -23,18 +23,10 @@ module Omniscient.Server.Types
     , Evt(..)
     ) where
 
-import              GHC.Generics
-
-import              Data.Map (Map)
-import              Data.Time
-import              Data.Int
-
-import qualified    Data.Text as T
-import              Data.Text (Text)
-import              Data.Aeson
-
-import              Database.Persist.TH
-import              Database.Persist.Sql
+import GHC.Generics
+import Data.Int
+import Data.Aeson
+import Database.Persist.Sql
 
 data Evt
     = ButtonClicked
@@ -78,6 +70,8 @@ data NewAppResponse = NewAppResponse
 
 data UpdateRequest = UpdateRequest
     { eventName :: String
+    , eventType :: Evt
+    , eventValue :: String
     } deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 data UpdateResponse = UpdateResponse

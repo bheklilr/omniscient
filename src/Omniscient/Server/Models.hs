@@ -28,7 +28,6 @@ Event
     eventValue  String
     eventSource String
     eventTime   UTCTime default=CURRENT_TIME
-    eventOrigin String
-    UniqueEvent eventName eventTime eventOrigin
+    UniqueEvent eventApp eventName eventTime eventSource
     deriving Show
 |]

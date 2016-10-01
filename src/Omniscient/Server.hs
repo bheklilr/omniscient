@@ -22,6 +22,7 @@ module Omniscient.Server
 
 import Data.Int
 import Data.Function
+import Data.Time
 
 import Control.Monad.Reader
 import Control.Monad.Logger
@@ -90,8 +91,17 @@ newAppHandler request host = do
 
 updateHandler :: Omni app => Int64 -> UpdateRequest -> SockAddr -> app UpdateResponse
 updateHandler appID request host = do
-    $logDebugSH (appID, request, host)
-    return $ UpdateResponse $ Left $ UpdateError "Unimplemented"
+    $logDebug "Inserting event"
+    event <- Event
+            (toSqlKey appID)
+            (request & eventName)
+            (request & eventType)
+            (request & eventValue)
+            (show host)
+            <$> liftIO getCurrentTime
+    updateID' <- db.insert $ event
+    $logDebug "Inserted event successfully"
+    return $ UpdateResponse $ return $ fromSqlKey updateID'
 
 queryHandler :: Omni app => Int64 -> QueryRequest -> app QueryResponse
 queryHandler appID request = do
