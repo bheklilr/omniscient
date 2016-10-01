@@ -1,3 +1,4 @@
+{-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -7,10 +8,13 @@
 {-# LANGUAGE TypeOperators #-}
 module Omniscient.Server where
 
+import Data.Int
+import Data.Function
+
 import Control.Monad.Reader
 import Control.Monad.Logger
 
-import Database.Persist.Sql (ConnectionPool)
+import Database.Persist.Sql
 
 import Network.Socket
 import Network.Wai.Handler.Warp as Warp
@@ -18,6 +22,7 @@ import Network.Wai.Handler.Warp as Warp
 import Servant
 
 import Omniscient.Server.Types
+import Omniscient.Server.Models
 import Omniscient.Server.API
 
 
@@ -51,21 +56,25 @@ class
     , MonadReader ConnectionPool m
     , MonadLogger m
     ) => Omni m where
-instance MonadIO m => Omni (OmniscientT m) where
+instance MonadIO m => Omni (OmniscientT m)
 
+sql :: Omni app => _ -> app a
+sql = (ask >>=) . liftSqlPersistMPool
 
 newAppHandler :: Omni app => NewAppRequest -> SockAddr -> app NewAppResponse
 newAppHandler request host = do
-    $logDebugSH (request, host)
-    return $ NewAppResponse $ Left $ NewAppError "Unimplemented"
+    $logDebug "Attempting to set up new application"
+    appId <- sql $ insert $ App (request & appName) (show host)
+    $logDebug "New application set up"
+    return $ NewAppResponse $ Right $ fromSqlKey appId
 
 
-updateHandler :: Omni app => Int -> UpdateRequest -> SockAddr -> app UpdateResponse
+updateHandler :: Omni app => Int64 -> UpdateRequest -> SockAddr -> app UpdateResponse
 updateHandler appID request host = do
     $logDebugSH (appID, request, host)
     return $ UpdateResponse $ Left $ UpdateError "Unimplemented"
 
-queryHandler :: Omni app => Int -> QueryRequest -> app QueryResponse
+queryHandler :: Omni app => Int64 -> QueryRequest -> app QueryResponse
 queryHandler appID request = do
     $logDebugSH appID
     $logDebugSH request

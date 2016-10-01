@@ -8,6 +8,7 @@ module Omniscient.Server.API
     , omniscientAPI
     ) where
 
+import Data.Int
 import Data.Proxy (Proxy)
 
 import Servant
@@ -29,7 +30,7 @@ type NewAppAPI
 -- captures the hostname of the client.
 type UpdateAPI
     =  "update"
-    :> Capture "app" Int
+    :> Capture "app" Int64
     :> ReqBody '[JSON] UpdateRequest
     :> RemoteHost
     :> Post '[JSON] UpdateResponse
@@ -37,7 +38,7 @@ type UpdateAPI
 -- |A new query request comes in on /query/<app_id> with a JSON body.
 type QueryAPI
     =  "query"
-    :> Capture "app" Int
+    :> Capture "app" Int64
     :> ReqBody '[JSON] QueryRequest
     :> Get '[JSON] QueryResponse
 

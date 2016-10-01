@@ -27,6 +27,7 @@ import              GHC.Generics
 
 import              Data.Map (Map)
 import              Data.Time
+import              Data.Int
 
 import qualified    Data.Text as T
 import              Data.Text (Text)
@@ -49,17 +50,17 @@ instance PersistFieldSql Evt where
     sqlType _ = SqlInt32
 
 data NewAppError
-    = NewAppError Text
+    = NewAppError String
     deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 data UpdateError
-    = UpdateError Text
+    = UpdateError String
     deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
-type UpdateID = Int
+type UpdateID = Int64
 
 data QueryError
-    = QueryError Text
+    = QueryError String
     deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 data QueryResults
@@ -67,16 +68,16 @@ data QueryResults
     deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 data NewAppRequest = NewAppRequest
-    { appName :: Text
+    { appName :: String
     } deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 data NewAppResponse = NewAppResponse
-    { newAppID :: Either NewAppError Int
+    { newAppID :: Either NewAppError Int64
     } deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 
 data UpdateRequest = UpdateRequest
-    { eventName :: Text
+    { eventName :: String
     } deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 data UpdateResponse = UpdateResponse
