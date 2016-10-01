@@ -1,0 +1,4 @@
+dist
+dist-*
+.cabal-sandbox/
+.stack-work/
