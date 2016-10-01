@@ -18,6 +18,7 @@ share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 App
     appName String
     createdBy String
+    UniqueApp appName
     deriving Show
 
 Event
@@ -28,5 +29,6 @@ Event
     eventSource String
     eventTime   UTCTime default=CURRENT_TIME
     eventOrigin String
+    UniqueEvent eventName eventTime eventOrigin
     deriving Show
 |]

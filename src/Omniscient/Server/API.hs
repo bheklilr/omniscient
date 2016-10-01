@@ -6,6 +6,7 @@ module Omniscient.Server.API
     , QueryAPI
     , OmniscientAPI
     , omniscientAPI
+    , module Omniscient.Server.Types
     ) where
 
 import Data.Int
@@ -16,11 +17,10 @@ import Servant
 import Omniscient.Server.Types
 
 
--- |A new application request comes in on /new/app with a JSON body and captures
+-- |A new application request comes in on /app with a JSON body and captures
 -- the hostname of the client.
 type NewAppAPI
-    =  "new"
-    :> "app"
+    =  "app"
     :> ReqBody '[JSON] NewAppRequest
     :> RemoteHost  -- I guess this is called RemoteHost when it should be RemoteHostname?
     :> Post '[JSON] NewAppResponse
@@ -50,5 +50,6 @@ type OmniscientAPI
     :<|> UpdateAPI
     :<|> QueryAPI
 
+-- | The overall API type for the application
 omniscientAPI :: Proxy OmniscientAPI
 omniscientAPI = Proxy

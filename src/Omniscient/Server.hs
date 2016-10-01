@@ -6,7 +6,19 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeOperators #-}
-module Omniscient.Server where
+module Omniscient.Server
+    ( module Omniscient.Server.Types
+    , module Omniscient.Server.API
+    , module Omniscient.Server.Models
+    , omniscientServer
+    , runOmniscientServer
+    , OmniscientT
+    , Omni
+    , sql
+    , newAppHandler
+    , updateHandler
+    , queryHandler
+    ) where
 
 import Data.Int
 import Data.Function

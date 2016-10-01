@@ -7,7 +7,6 @@ import Control.Monad.Logger (runStderrLoggingT)
 import Database.Persist.Sqlite
 
 import Omniscient.Server
-import Omniscient.Server.Models
 
 -- |The default entry point to the application.  Sets up the database, performs
 -- migrations, and starts the server
