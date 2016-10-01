@@ -27,6 +27,7 @@ library
                         text,
                         containers,
                         aeson,
+                        network,
                         servant,
                         servant-server,
                         transformers,

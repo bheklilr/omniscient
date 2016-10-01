@@ -14,6 +14,7 @@ import Control.Monad.Logger
 
 import Database.Persist.Sql (ConnectionPool)
 
+import Network.Socket
 import Network.Wai.Handler.Warp as Warp
 
 import Servant
@@ -55,14 +56,14 @@ class
 instance MonadIO m => Omni (OmniscientT m) where
 
 
-newAppHandler :: Omni app => NewAppRequest -> app NewAppResponse
-newAppHandler request = do
+newAppHandler :: Omni app => NewAppRequest -> SockAddr -> app NewAppResponse
+newAppHandler request host = do
     $logDebugSH request
     return $ NewAppResponse $ Left $ NewAppError "Unimplemented"
 
 
-updateHandler :: Omni app => Int -> UpdateRequest -> app UpdateResponse
-updateHandler appID request = do
+updateHandler :: Omni app => Int -> UpdateRequest -> SockAddr -> app UpdateResponse
+updateHandler appID request host = do
     $logDebugSH appID
     $logDebugSH request
     return $ UpdateResponse $ Left $ UpdateError "Unimplemented"
