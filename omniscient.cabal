@@ -1,0 +1,60 @@
+name:                   omniscient
+version:                0.1.0.0
+synopsis:               Know what your users are doing
+description:            Please see README.md
+homepage:               https://github.com/bheklilr/omniscient#readme
+license:                BSD3
+license-file:           LICENSE
+author:                 Aaron Stevens
+maintainer:             bheklilr2@gmail.com
+copyright:              2016 Aaron Stevens
+category:               Data
+build-type:             Simple
+cabal-version:          >=1.10
+
+library
+    hs-source-dirs:     src
+    default-language:   Haskell2010
+    exposed-modules:    Omniscient,
+                        Omniscient.Server
+    other-modules:      Omniscient.Server.API,
+                        Omniscient.Server.Types,
+                        Omniscient.Server.Models
+    ghc-options:        -Wall -ddump-deriv
+    build-depends:      base >= 4.7 && < 5,
+                        time,
+                        free,
+                        text,
+                        containers,
+                        aeson,
+                        servant,
+                        servant-server,
+                        transformers,
+                        mtl,
+                        persistent,
+                        persistent-template,
+                        persistent-sqlite,
+                        monad-logger,
+                        wai,
+                        warp
+
+executable omniscient
+    hs-source-dirs:     app
+    main-is:            Main.hs
+    ghc-options:        -threaded -rtsopts -with-rtsopts=-N
+    default-language:   Haskell2010
+    build-depends:      base,
+                        omniscient
+
+test-suite omniscient-test
+    type:               exitcode-stdio-1.0
+    hs-source-dirs:     test
+    main-is:            Spec.hs
+    ghc-options:        -threaded -rtsopts -with-rtsopts=-N
+    default-language:   Haskell2010
+    build-depends:      base,
+                        omniscient
+
+source-repository head
+  type:     git
+  location: https://github.com/bheklilr/omniscient
