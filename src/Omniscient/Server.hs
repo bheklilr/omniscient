@@ -93,18 +93,16 @@ updateHandler :: Omni app => Int64 -> UpdateRequest -> SockAddr -> app UpdateRes
 updateHandler appID request host = do
     $logDebug "Inserting event"
     event <- Event
-            (toSqlKey appID)
-            (request & eventName)
-            (request & eventType)
-            (request & eventValue)
-            (show host)
-            <$> liftIO getCurrentTime
+        (toSqlKey appID)
+        (request & eventName)
+        (request & eventType)
+        (request & eventValue)
+        (show host)
+        <$> liftIO getCurrentTime
     updateID' <- db.insert $ event
     $logDebug "Inserted event successfully"
     return $ UpdateResponse $ return $ fromSqlKey updateID'
 
 queryHandler :: Omni app => Int64 -> QueryRequest -> app QueryResponse
 queryHandler appID request = do
-    $logDebugSH appID
-    $logDebugSH request
     return $ QueryResponse $ Left $ QueryError "Unimplemented"
