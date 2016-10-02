@@ -47,13 +47,15 @@ instance PersistFieldSql Evt where
     sqlType _ = SqlInt32
 
 data Query
+    -- Primitives
     = TopUsedFeatures Int
     | LeastUsedFeatures Int
     | RatiosOfFeaturesUsed
+    -- Combinators and ways to apply conditions
     | LimitToEventType Evt Query
     | ExcludeEventType Evt Query
-    | FromDate UTCTime
-    | ToDate UTCTime
+    | FromDate UTCTime Query
+    | ToDate UTCTime Query
     deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 data NewAppError
