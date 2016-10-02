@@ -65,8 +65,6 @@ data Query = Query
     } deriving (Eq, Show, Generic)
 
 instance FromJSON Query
-
-
 instance ToJSON Query where
     toEncoding = genericToEncoding $ defaultOptions { omitNothingFields = True }
 
