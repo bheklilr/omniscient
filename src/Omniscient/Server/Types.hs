@@ -32,11 +32,8 @@ import GHC.Generics
 import Data.Time
 import Data.Int
 import Data.Aeson
+import Data.Aeson.Types
 import Database.Persist.Sql
-import Control.Applicative
-import Control.Monad
-import Data.Monoid
-import Data.Maybe
 
 data Evt
     = ButtonClicked
@@ -51,54 +48,27 @@ instance PersistField Evt where
 instance PersistFieldSql Evt where
     sqlType _ = SqlInt32
 
-data Query
-    -- Primitives
-    = TopUsedFeatures Int
-    | LeastUsedFeatures Int
-    -- Combinators and ways to apply conditions
-    | LimitToEventType Evt Query
-    | ExcludeEventType Evt Query
-    | LimitToSource String Query
-    | ExcludeSource String Query
-    | FromDate UTCTime Query
-    | ToDate UTCTime Query
-    deriving (Eq, Show, Ord)
 
-instance FromJSON Query where
-    parseJSON (Object v) = do
-        primitive <- parsePrimitive v
-        limit_to_events <- parseLimitToEvents v
-        exclude_events <- parseExcludeEvents v
-        limit_to_sources <- parseLimitToSources v
-        exclude_sources <- parseExcludeSources v
-        from_date <- v .:? "from" >>= return . fromMaybe id . fmap FromDate
-        to_date   <- v .:? "to"   >>= return . fromMaybe id . fmap ToDate
-        return
-            $ to_date $ from_date
-            $ exclude_sources $ limit_to_sources
-            $ exclude_events $ limit_to_events
-            $ primitive
-        where
-            parsePrimitive obj = do
-                top_used'   <- obj .:? "top_used"
-                least_used' <- obj .:? "least_used"
-                let top_used   = Alt $ TopUsedFeatures   <$> top_used'
-                    least_used = Alt $ LeastUsedFeatures <$> least_used'
-                case getAlt $ top_used <|> least_used of
-                    Nothing -> mzero
-                    Just primitive -> return primitive
-            parseList key constructor obj = do
-                values <- fromMaybe [] <$> obj .:? key
-                return $ appEndo $ mconcat $ map (Endo . constructor) values
-            parseLimitToEvents  = parseList "limit_to_events"  LimitToEventType
-            parseExcludeEvents  = parseList "exclude_events"   ExcludeEventType
-            parseLimitToSources = parseList "limit_to_sources" LimitToSource
-            parseExcludeSources = parseList "exclude_sources"  ExcludeSource
+data QueryType
+    = TopUsedFeatures
+    | LeastUsedFeatures
+    deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
-    parseJSON _ = mzero
+data Query = Query
+    { queryType :: QueryType
+    , limitToEvents :: Maybe [Evt]
+    , excludeEvents :: Maybe [Evt]
+    , limitToSources :: Maybe [String]
+    , excludeSources :: Maybe [String]
+    , fromDate :: Maybe UTCTime
+    , toDate :: Maybe UTCTime
+    } deriving (Eq, Show, Generic)
+
+instance FromJSON Query
+
 
 instance ToJSON Query where
-    toJSON = undefined
+    toEncoding = genericToEncoding $ defaultOptions { omitNothingFields = True }
 
 data NewAppError
     = NewAppError String
