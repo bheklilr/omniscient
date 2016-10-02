@@ -105,4 +105,4 @@ updateHandler appID request host = do
 
 queryHandler :: Omni app => Int64 -> QueryRequest -> app QueryResponse
 queryHandler appID request = do
-    return $ QueryResponse $ Left $ QueryError "Unimplemented"
+    return $ QueryResponse $ return $ QueryResults
