@@ -81,28 +81,35 @@ newAppHandler request host = do
     case existingEntity of
         Just appID -> do
             $logDebug "Application already exists, returning existing appID"
-            return $ NewAppResponse $ return $ fromSqlKey $ entityKey appID
+            return $ newAppRequestSucceeded $ fromSqlKey $ entityKey appID
         Nothing -> do
             $logDebug "Attempting to set up new application"
             appID <- db.insert $ App (request & appName) (show host)
             $logDebug "New application set up"
-            return $ NewAppResponse $ return $ fromSqlKey appID
+            return $ newAppRequestSucceeded $ fromSqlKey appID
 
 
 updateHandler :: Omni app => Int64 -> UpdateRequest -> SockAddr -> app UpdateResponse
 updateHandler appID request host = do
-    $logDebug "Inserting event"
-    event <- Event
-        (toSqlKey appID)
-        (request & eventName)
-        (request & eventType)
-        (request & eventValue)
-        (show host)
-        <$> liftIO getCurrentTime
-    updateID' <- db.insert $ event
-    $logDebug "Inserted event successfully"
-    return $ UpdateResponse $ return $ fromSqlKey updateID'
+    let appKey = toSqlKey appID
+    existingEntity <- db.get $ appKey
+    case existingEntity of
+        Nothing -> do
+            $logDebug "Received event update without matching app ID"
+            return $ updateRequestFailed $ "No app with ID " ++ show appID
+        Just _  -> do
+            $logDebug "Inserting event"
+            event <- Event
+                appKey
+                (request & eventName)
+                (request & eventType)
+                (request & eventValue)
+                (show host)
+                <$> liftIO getCurrentTime
+            updateID' <- db.insert $ event
+            $logDebug "Inserted event successfully"
+            return $ updateRequestSucceeded $ fromSqlKey updateID'
 
 queryHandler :: Omni app => Int64 -> QueryRequest -> app QueryResponse
 queryHandler appID request = do
-    return $ QueryResponse $ return $ QueryResults
+    return $ queryRequestSucceeded $ QueryResults

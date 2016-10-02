@@ -17,10 +17,14 @@ module Omniscient.Server.Types
     , QueryResponse(..)
     , NewAppError(..)
     , UpdateError(..)
-    , UpdateID
     , QueryError(..)
+    , AppID
+    , UpdateID
     , QueryResults(..)
     , Evt(..)
+    , newAppRequestFailed, newAppRequestSucceeded
+    , updateRequestFailed, updateRequestSucceeded
+    , queryRequestFailed, queryRequestSucceeded
     ) where
 
 import GHC.Generics
@@ -60,6 +64,7 @@ data UpdateError
     = UpdateError String
     deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
+type AppID = Int64
 type UpdateID = Int64
 
 data QueryError
@@ -76,9 +81,14 @@ data NewAppRequest = NewAppRequest
     } deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 data NewAppResponse = NewAppResponse
-    { newAppID :: Either NewAppError Int64
+    { newAppID :: Either NewAppError AppID
     } deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
+newAppRequestFailed :: String -> NewAppResponse
+newAppRequestFailed = NewAppResponse . Left . NewAppError
+
+newAppRequestSucceeded :: AppID -> NewAppResponse
+newAppRequestSucceeded = NewAppResponse . Right
 
 data UpdateRequest = UpdateRequest
     { eventName :: String
@@ -90,6 +100,11 @@ data UpdateResponse = UpdateResponse
     { updateID :: Either UpdateError UpdateID
     } deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
+updateRequestFailed :: String -> UpdateResponse
+updateRequestFailed = UpdateResponse . Left . UpdateError
+
+updateRequestSucceeded :: UpdateID -> UpdateResponse
+updateRequestSucceeded = UpdateResponse . Right
 
 data QueryRequest = QueryRequest
     { query :: Query
@@ -98,3 +113,9 @@ data QueryRequest = QueryRequest
 data QueryResponse = QueryResponse
     { queryResults :: Either QueryError QueryResults
     } deriving (Eq, Show, Generic, ToJSON, FromJSON)
+
+queryRequestFailed :: String -> QueryResponse
+queryRequestFailed = QueryResponse . Left . QueryError
+
+queryRequestSucceeded :: QueryResults -> QueryResponse
+queryRequestSucceeded = QueryResponse . Right
