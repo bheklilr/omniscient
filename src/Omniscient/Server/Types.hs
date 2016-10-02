@@ -54,6 +54,8 @@ data Query
     -- Combinators and ways to apply conditions
     | LimitToEventType Evt Query
     | ExcludeEventType Evt Query
+    | LimitToSource String Query
+    | ExcludeSource String Query
     | FromDate UTCTime Query
     | ToDate UTCTime Query
     deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
