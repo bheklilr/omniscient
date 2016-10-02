@@ -24,6 +24,7 @@ module Omniscient.Server.Types
     ) where
 
 import GHC.Generics
+import Data.Time
 import Data.Int
 import Data.Aeson
 import Database.Persist.Sql
@@ -40,6 +41,16 @@ instance PersistField Evt where
     fromPersistValue = fmap toEnum . fromPersistValue
 instance PersistFieldSql Evt where
     sqlType _ = SqlInt32
+
+data Query
+    = TopUsedFeatures Int
+    | LeastUsedFeatures Int
+    | RatiosOfFeaturesUsed
+    | LimitToEventType Evt Query
+    | ExcludeEventType Evt Query
+    | FromDate UTCTime
+    | ToDate UTCTime
+    deriving (Eq, Show, Ord, Generic, ToJSON, FromJSON)
 
 data NewAppError
     = NewAppError String
@@ -58,6 +69,7 @@ data QueryError
 data QueryResults
     = QueryResults
     deriving (Eq, Show, Generic, ToJSON, FromJSON)
+
 
 data NewAppRequest = NewAppRequest
     { appName :: String
@@ -80,7 +92,7 @@ data UpdateResponse = UpdateResponse
 
 
 data QueryRequest = QueryRequest
-    { query :: ()
+    { query :: Query
     } deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 data QueryResponse = QueryResponse
