@@ -42,6 +42,10 @@ type QueryAPI
     :> ReqBody '[JSON] QueryRequest
     :> Get '[JSON] QueryResponse
 
+type ValidateAPI
+    =    ("validate" :> "appRequest"    :> ReqBody '[JSON] NewAppRequest :> Get '[JSON] (Maybe String))
+    :<|> ("validate" :> "updateRequest" :> ReqBody '[JSON] UpdateRequest :> Get '[JSON] (Maybe String))
+    :<|> ("validate" :> "queryRequest"  :> ReqBody '[JSON] QueryRequest  :> Get '[JSON] (Maybe String))
 
 -- |The overall server consists of the simple endpoints
 -- /new/app, /update/<app_id>, and /query/<app_id>
@@ -49,6 +53,8 @@ type OmniscientAPI
     =    NewAppAPI
     :<|> UpdateAPI
     :<|> QueryAPI
+    -- :<|> ValidateAPI
+    -- :<|> FrontendAPI
 
 -- | The overall API type for the application
 omniscientAPI :: Proxy OmniscientAPI
