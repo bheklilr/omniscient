@@ -125,10 +125,12 @@ queryHandler appID request = do
         Just _ -> do
             $logDebug "Performing query"
             let q = request & query
-            case q & queryType of
+            result <- case q & queryType of
                 TopUsedFeatures lim -> getTopUsedFeatures appKey q lim
                 LeastUsedFeatures lim -> getLeastUsedFeatures appKey q lim
                 Counts timeWindow -> getCounts appKey q timeWindow
+            $logDebug "Query performed"
+            return result
     where
         getTopUsedFeatures = getUsedFeatures desc
 
