@@ -132,11 +132,12 @@ queryHandler appID request = do
         getLeastUsedFeatures = getUsedFeatures asc
         getCounts appKey q timeWindow = undefined
         applyQueryFilters event appKey q = do
-            where_ ((event ^. EventEventApp) ==. val appKey)
-            where_ ((event ^. EventEventType)   `in_`   valList (q & limitToEvents  & fromMaybe []))
-            where_ ((event ^. EventEventType)   `notIn` valList (q & excludeEvents  & fromMaybe []))
-            where_ ((event ^. EventEventSource) `in_`   valList (q & limitToSources & fromMaybe []))
-            where_ ((event ^. EventEventSource) `notIn` valList (q & excludeSources & fromMaybe []))
+            where_ (event ^. EventEventApp ==. val appKey)
+            let vlMaybe field = valList . fromMaybe [] . field
+            where_ (event ^. EventEventType   `in_`   vlMaybe limitToEvents  q)
+            where_ (event ^. EventEventType   `notIn` vlMaybe excludeEvents  q)
+            where_ (event ^. EventEventSource `in_`   vlMaybe limitToSources q)
+            where_ (event ^. EventEventSource `notIn` vlMaybe excludeSources q)
         getUsedFeatures sortBy appKey q lim = do
             values <- db $ select $ from $ \event -> do
                 applyQueryFilters event appKey q
