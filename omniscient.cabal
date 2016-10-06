@@ -69,7 +69,8 @@ test-suite omniscient-test
                         persistent,
                         persistent-template,
                         persistent-sqlite,
-                        monad-logger
+                        monad-logger,
+                        hspec
 
 source-repository head
   type:     git
