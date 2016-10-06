@@ -16,9 +16,9 @@ import           Omniscient.Server.Types
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 App
-    appName String
+    programName String
     createdBy String
-    UniqueApp appName
+    UniqueApp programName
     deriving Show
 
 Event

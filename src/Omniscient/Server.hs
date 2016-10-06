@@ -23,11 +23,13 @@ module Omniscient.Server
 import Data.Int
 import Data.Function
 import Data.Time
+import Data.Maybe
 
 import Control.Monad.Reader
 import Control.Monad.Logger
 
-import Database.Persist.Sql
+import Database.Persist.Sql hiding ((==.), (<.), (>.))
+import Database.Esqueleto
 
 import Network.Socket
 import Network.Wai.Handler.Warp as Warp
@@ -112,4 +114,36 @@ updateHandler appID request host = do
 
 queryHandler :: Omni app => Int64 -> QueryRequest -> app QueryResponse
 queryHandler appID request = do
-    return $ queryRequestSucceeded $ QueryResults
+    let appKey = toSqlKey appID :: Key App
+    existingEntity <- db.get $ appKey
+    case existingEntity of
+        Nothing -> do
+            $logDebug "Received query request without matching app ID"
+            return $ queryRequestFailed $ "No app with ID " ++ show appID
+        Just _ -> do
+            $logDebug "Performing query"
+            let q = request & query
+            case q & queryType of
+                TopUsedFeatures lim -> getTopUsedFeatures appKey q lim
+                LeastUsedFeatures lim -> getLeastUsedFeatures appKey q lim
+                Counts timeWindow -> getCounts appKey q timeWindow
+    where
+        getTopUsedFeatures = getUsedFeatures desc
+        getLeastUsedFeatures = getUsedFeatures asc
+        getCounts appKey q timeWindow = undefined
+        applyQueryFilters event appKey q = do
+            where_ ((event ^. EventEventApp) ==. val appKey)
+            where_ ((event ^. EventEventType)   `in_`   valList (q & limitToEvents  & fromMaybe []))
+            where_ ((event ^. EventEventType)   `notIn` valList (q & excludeEvents  & fromMaybe []))
+            where_ ((event ^. EventEventSource) `in_`   valList (q & limitToSources & fromMaybe []))
+            where_ ((event ^. EventEventSource) `notIn` valList (q & excludeSources & fromMaybe []))
+        getUsedFeatures sortBy appKey q lim = do
+            values <- db $ select $ from $ \event -> do
+                applyQueryFilters event appKey q
+                groupBy (event ^. EventEventType, event ^. EventEventName)
+                let countRows' = countRows
+                orderBy [sortBy countRows']
+                limit $ fromIntegral lim
+                return (event ^. EventEventType, event ^. EventEventName, countRows')
+            asList <- forM values $ \(Value evt, Value name, Value cnt) -> return (evt, name, cnt :: Int)
+            return $ queryRequestSucceeded $ UsedFeaturesResult asList

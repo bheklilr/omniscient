@@ -35,6 +35,7 @@ library
                         persistent,
                         persistent-template,
                         persistent-sqlite,
+                        esqueleto,
                         monad-logger,
                         wai,
                         warp

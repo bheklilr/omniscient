@@ -20,6 +20,7 @@ module Omniscient.Server.Types
     , QueryError(..)
     , AppID
     , UpdateID
+    , QueryType(..)
     , Query(..)
     , QueryResults(..)
     , Evt(..)
@@ -48,10 +49,21 @@ instance PersistField Evt where
 instance PersistFieldSql Evt where
     sqlType _ = SqlInt32
 
+data TimeWindow
+    = Seconds Int
+    | Minutes Int
+    | Hours Int
+    | Days Int
+    | Weeks Int
+    | Months Int
+    | Years Int
+    | TimeWindowSum TimeWindow TimeWindow
+    deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 data QueryType
-    = TopUsedFeatures
-    | LeastUsedFeatures
+    = TopUsedFeatures Int
+    | LeastUsedFeatures Int
+    | Counts TimeWindow
     deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 data Query = Query
@@ -84,7 +96,9 @@ data QueryError
     deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 data QueryResults
-    = QueryResults
+    = CountsResult [(Evt, String, Int)]
+    | UsedFeaturesResult [(Evt, String, Int)]
+    | QueryResults
     deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 
