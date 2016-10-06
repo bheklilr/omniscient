@@ -96,9 +96,8 @@ data QueryError
     deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 data QueryResults
-    = CountsResult [(Evt, String, Int)]
+    = CountsResult [(Evt, String, UTCTime)]
     | UsedFeaturesResult [(Evt, String, Int)]
-    | QueryResults
     deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 

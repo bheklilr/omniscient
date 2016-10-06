@@ -129,18 +129,24 @@ queryHandler appID request = do
                 Counts timeWindow -> getCounts appKey q timeWindow
     where
         getTopUsedFeatures = getUsedFeatures desc
+
         getLeastUsedFeatures = getUsedFeatures asc
-        getCounts appKey q timeWindow = undefined
-        applyQueryFilters event appKey q = do
+
+        applyQueryFilters appKey q event = do
             where_ (event ^. EventEventApp ==. val appKey)
+            when (isJust $ q & fromDate) $
+                where_ (event ^. EventEventTime >. val (fromJust (q & fromDate)))
+            when (isJust $ q & toDate) $
+                where_ (event ^. EventEventTime <. val (fromJust (q & toDate)))
             let vlMaybe field = valList . fromMaybe [] . field
             where_ (event ^. EventEventType   `in_`   vlMaybe limitToEvents  q)
             where_ (event ^. EventEventType   `notIn` vlMaybe excludeEvents  q)
             where_ (event ^. EventEventSource `in_`   vlMaybe limitToSources q)
             where_ (event ^. EventEventSource `notIn` vlMaybe excludeSources q)
+
         getUsedFeatures sortBy appKey q lim = do
             values <- db $ select $ from $ \event -> do
-                applyQueryFilters event appKey q
+                applyQueryFilters appKey q event
                 groupBy (event ^. EventEventType, event ^. EventEventName)
                 let countRows' = countRows
                 orderBy [sortBy countRows']
@@ -148,3 +154,12 @@ queryHandler appID request = do
                 return (event ^. EventEventType, event ^. EventEventName, countRows')
             asList <- forM values $ \(Value evt, Value name, Value cnt) -> return (evt, name, cnt :: Int)
             return $ queryRequestSucceeded $ UsedFeaturesResult asList
+
+        getCounts appKey q timeWindow = do
+            values <- db $ select $ from $ \event -> do
+                applyQueryFilters appKey q event
+                groupBy (event ^. EventEventType, event ^. EventEventName)
+                orderBy [asc $ event ^. EventEventTime]
+                return (event ^. EventEventType, event ^. EventEventName, event ^. EventEventTime)
+            asList <- forM values $ \(Value evt, Value name, Value time) -> return (evt, name, time)
+            return $ queryRequestSucceeded $ CountsResult asList
