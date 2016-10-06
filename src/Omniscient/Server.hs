@@ -24,9 +24,11 @@ import Data.Int
 import Data.Function
 import Data.Time
 import Data.Maybe
+import Data.List (group)
 
 import Control.Monad.Reader
 import Control.Monad.Logger
+import Control.Arrow ((&&&))
 
 import Database.Persist.Sql hiding ((==.), (<.), (>.))
 import Database.Esqueleto
@@ -156,10 +158,30 @@ queryHandler appID request = do
             return $ queryRequestSucceeded $ UsedFeaturesResult asList
 
         getCounts appKey q timeWindow = do
+            now <- liftIO getCurrentTime
             values <- db $ select $ from $ \event -> do
                 applyQueryFilters appKey q event
-                groupBy (event ^. EventEventType, event ^. EventEventName)
-                orderBy [asc $ event ^. EventEventTime]
+                orderBy [asc $ event ^. EventEventTime, asc $ event ^. EventEventType, asc $ event ^. EventEventName]
                 return (event ^. EventEventType, event ^. EventEventName, event ^. EventEventTime)
             asList <- forM values $ \(Value evt, Value name, Value time) -> return (evt, name, time)
-            return $ queryRequestSucceeded $ CountsResult asList
+            let timeWindowDiff = negate $ fromInteger $ toInteger $ toSeconds timeWindow
+                groupedByTime = go now asList
+                go _ [] = []
+                go t events =
+                    let inWindow = takeWhile ((< t) . (\(_, _, time) -> time)) events
+                        outsideOfWindow = drop (length inWindow) events
+                        timesStripped = map (\(evt, name, _) -> (evt, name)) inWindow
+                        groupedByEvt = group timesStripped
+                        cnts = map (head &&& length) groupedByEvt
+                        squashedCnts = map (\((evt, name), cnt) -> (evt, name, cnt)) cnts
+                    in (t, squashedCnts) : go (addUTCTime timeWindowDiff t) outsideOfWindow
+
+                toSeconds (Seconds i) = i
+                toSeconds (Minutes i) = i *  60
+                toSeconds (Hours i)   = i *  60 * toSeconds (Minutes 1)
+                toSeconds (Days i)    = i *  24 * toSeconds (Hours 1)
+                toSeconds (Weeks i)   = i *   7 * toSeconds (Days 1)
+                toSeconds (Months i)  = i *  30 * toSeconds (Days 1)
+                toSeconds (Years i)   = i * 365 * toSeconds (Days 1)
+                toSeconds (TimeWindowSum a b) = toSeconds a + toSeconds b
+            return $ queryRequestSucceeded $ CountsResult groupedByTime

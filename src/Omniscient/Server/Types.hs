@@ -21,6 +21,7 @@ module Omniscient.Server.Types
     , AppID
     , UpdateID
     , QueryType(..)
+    , TimeWindow(..)
     , Query(..)
     , QueryResults(..)
     , Evt(..)
@@ -96,8 +97,8 @@ data QueryError
     deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 data QueryResults
-    = CountsResult [(Evt, String, UTCTime)]
-    | UsedFeaturesResult [(Evt, String, Int)]
+    = UsedFeaturesResult [(Evt, String, Int)]
+    | CountsResult [(UTCTime, [(Evt, String, Int)])]
     deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 
