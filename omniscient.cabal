@@ -19,7 +19,11 @@ library
                         Omniscient.Server,
                         Omniscient.Server.API,
                         Omniscient.Server.Types,
-                        Omniscient.Server.Models
+                        Omniscient.Server.Models,
+                        Omniscient.Server.Core,
+                        Omniscient.Server.Backend,
+                        Omniscient.Server.Frontend
+
     ghc-options:        -Wall -Wno-partial-type-signatures
     build-depends:      base >= 4.7 && < 5,
                         time,
@@ -30,6 +34,9 @@ library
                         network,
                         servant,
                         servant-server,
+                        servant-blaze,
+                        blaze-html,
+                        blaze-markup,
                         transformers,
                         mtl,
                         persistent,

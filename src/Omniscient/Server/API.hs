@@ -13,6 +13,8 @@ import Data.Int
 import Data.Proxy (Proxy)
 
 import Servant
+import Servant.HTML.Blaze
+import Text.Blaze.Html
 
 import Omniscient.Server.Types
 
@@ -42,13 +44,14 @@ type QueryAPI
     :> ReqBody '[JSON] QueryRequest
     :> Get '[JSON] QueryResponse
 
+type FrontendAPI = Get '[HTML] Html
 -- |The overall server consists of the simple endpoints
 -- /new/app, /update/<app_id>, and /query/<app_id>
 type OmniscientAPI
     =    NewAppAPI
     :<|> UpdateAPI
     :<|> QueryAPI
-    -- :<|> FrontendAPI
+    :<|> FrontendAPI
 
 -- | The overall API type for the application
 omniscientAPI :: Proxy OmniscientAPI
