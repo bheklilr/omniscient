@@ -19,6 +19,8 @@ import Test.Hspec
 host :: SockAddr
 host = SockAddrInet 1234 $ tupleToHostAddress (192, 168, 1, 100)
 
+requestNewApp name = newAppHandler (NewAppRequest name) host
+
 setupConnection :: IO ConnectionPool
 setupConnection = do
     pool <- runStderrLoggingT $ createSqlitePool "test.db" 5
@@ -33,14 +35,25 @@ runTest test = join $ runIO $ do
     pool <- setupConnection
     runReaderT (runStderrLoggingT test) pool
 
-testNewAppHandler = undefined
+testNewAppHandler :: Spec
+testNewAppHandler = runTest $ do
+    (NewAppResponse (Right appID1)) <- requestNewApp "test1"
+    (NewAppResponse (Right appID2)) <- requestNewApp "test2"
+    (NewAppResponse (Right appID3)) <- requestNewApp "test1"
+    (NewAppResponse (Right appID4)) <- requestNewApp "test2"
+    return $ describe "testNewAppHandler" $ do
+        it "appID1 should be 1" $ appID1 `shouldBe` 1
+        it "appID2 should be 2" $ appID2 `shouldBe` 2
+        it "appID3 should be appID1" $ appID3 `shouldBe` appID1
+        it "appID4 should be appID2" $ appID4 `shouldBe` appID2
 
+testUpdateHandler :: Spec
 testUpdateHandler = undefined
 
 testGetTopUsedFeatures :: Spec
 testGetTopUsedFeatures = runTest $ do
     startTime <- liftIO $ getCurrentTime
-    (NewAppResponse (Right appID)) <- newAppHandler (NewAppRequest "test") host
+    (NewAppResponse (Right appID)) <- requestNewApp "test"
     let button name value = UpdateRequest name ButtonClicked value
         sendButton name value = updateHandler appID (button name value) host
     replicateM 1 $ sendButton "a" "1"
@@ -65,4 +78,5 @@ testGetTopUsedFeatures = runTest $ do
 
 main :: IO ()
 main = hspec $ do
+    testNewAppHandler
     testGetTopUsedFeatures
