@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 module Omniscient.Server.Backend where
@@ -9,6 +10,7 @@ import Data.Function ((&))
 import Data.Maybe
 
 import Network.Socket
+import Servant
 
 import Database.Persist.Sql hiding ((==.), (<.), (>.))
 import Database.Esqueleto
@@ -22,6 +24,13 @@ import Omniscient.Server.Models
 import Omniscient.Server.Types
 import Omniscient.Server.Core
 
+
+backend
+    ::   Omni app
+    =>   (NewAppRequest -> SockAddr -> app NewAppResponse)
+    :<|> (Int64 -> UpdateRequest -> SockAddr -> app UpdateResponse)
+    :<|> (Int64 -> QueryRequest -> app QueryResponse)
+backend = newAppHandler :<|> updateHandler :<|> queryHandler
 
 newAppHandler :: Omni app => NewAppRequest -> SockAddr -> app NewAppResponse
 newAppHandler request host = do

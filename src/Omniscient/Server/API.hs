@@ -4,9 +4,12 @@ module Omniscient.Server.API
     ( NewAppAPI
     , UpdateAPI
     , QueryAPI
+    , BackendAPI
+    , FrontendAPI
     , OmniscientAPI
     , omniscientAPI
     , module Omniscient.Server.Types
+    , module Servant
     ) where
 
 import Data.Int
@@ -44,13 +47,19 @@ type QueryAPI
     :> ReqBody '[JSON] QueryRequest
     :> Get '[JSON] QueryResponse
 
-type FrontendAPI = Get '[HTML] Html
--- |The overall server consists of the simple endpoints
--- /new/app, /update/<app_id>, and /query/<app_id>
-type OmniscientAPI
+type BackendAPI
     =    NewAppAPI
     :<|> UpdateAPI
     :<|> QueryAPI
+
+type Home = Get '[HTML] Html
+type View = "view" :> Capture "appName" String :> Get '[HTML] Html
+
+type FrontendAPI = Home :<|> View
+-- |The overall server consists of the simple endpoints
+-- /new/app, /update/<app_id>, and /query/<app_id>
+type OmniscientAPI
+    =    BackendAPI
     :<|> FrontendAPI
 
 -- | The overall API type for the application

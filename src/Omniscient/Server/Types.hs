@@ -23,6 +23,7 @@ module Omniscient.Server.Types
     , QueryType(..)
     , TimeWindow(..)
     , Query(..)
+    , defQuery
     , QueryResults(..)
     , Evt(..)
     , newAppRequestFailed, newAppRequestSucceeded
@@ -76,6 +77,9 @@ data Query = Query
     , fromDate :: Maybe UTCTime
     , toDate :: Maybe UTCTime
     } deriving (Eq, Show, Generic)
+
+defQuery :: Query
+defQuery = Query (TopUsedFeatures 0) Nothing Nothing Nothing Nothing Nothing Nothing
 
 instance FromJSON Query
 instance ToJSON Query where

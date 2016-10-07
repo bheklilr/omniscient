@@ -19,4 +19,4 @@ defaultMain = do
     runSqlPool (runMigration migrateAll) pool
     -- start the server itself on the given port (maybe this should be
     -- configurable in the future when config becomes a thing?)
-    runOmniscientServer 8080 pool
+    runOmniscientServer 3000 pool

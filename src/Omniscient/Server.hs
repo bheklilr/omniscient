@@ -33,10 +33,8 @@ import Omniscient.Server.Frontend
 
 omniscientServer :: ServerT OmniscientAPI (OmniscientT IO)
 omniscientServer
-    =    newAppHandler
-    :<|> updateHandler
-    :<|> queryHandler
-    :<|> frontendHandler
+    =    backend
+    :<|> frontend
 
 
 runOmniscientServer :: Port -> ConnectionPool -> IO ()
@@ -48,7 +46,7 @@ runOmniscientServer port pool =
         unwrapOmniscientT' :: forall a. OmniscientT IO a -> Handler a
         unwrapOmniscientT' app = do
             readerT <- return $ runStderrLoggingT app
-            handler <- liftIO $ runReaderT readerT pool
+            handler <- runReaderT readerT pool
             return handler
         unwrapOmniscientT :: OmniscientT IO :~> Handler
         unwrapOmniscientT = Nat unwrapOmniscientT'
