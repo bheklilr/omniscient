@@ -47,8 +47,21 @@ testNewAppHandler = runTest $ do
         it "appID3 should be appID1" $ appID3 `shouldBe` appID1
         it "appID4 should be appID2" $ appID4 `shouldBe` appID2
 
+testUpdateHandlerNoApp :: Spec
+testUpdateHandlerNoApp = runTest $ do
+    (UpdateResponse response) <- updateHandler 12345 (UpdateRequest "foo" ButtonClicked "bar") host
+    return $ describe "testUpdateHandlerNoApp" $ do
+        it "should have errored" $
+            response `shouldSatisfy` isLeft
+        it "should end with the fake appID" $
+            response `shouldSatisfy` (\(Left (UpdateError err)) -> last (words err) == "12345")
+
 testUpdateHandler :: Spec
-testUpdateHandler = undefined
+testUpdateHandler = runTest $ do
+    (NewAppResponse (Right appID)) <- requestNewApp "test"
+    (UpdateResponse response) <- updateHandler appID (UpdateRequest "foo" ButtonClicked "bar") host
+    return $ describe "testUpdateHandler" $ do
+        it "should have succeeded" $ response `shouldSatisfy` isRight
 
 testGetTopUsedFeatures :: Spec
 testGetTopUsedFeatures = runTest $ do
@@ -79,4 +92,6 @@ testGetTopUsedFeatures = runTest $ do
 main :: IO ()
 main = hspec $ do
     testNewAppHandler
+    testUpdateHandlerNoApp
+    testUpdateHandler
     testGetTopUsedFeatures
