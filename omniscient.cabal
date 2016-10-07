@@ -69,6 +69,7 @@ test-suite omniscient-test
                         persistent,
                         persistent-template,
                         persistent-sqlite,
+                        esqueleto,
                         monad-logger,
                         hspec
 

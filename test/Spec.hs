@@ -1,10 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 import Omniscient.Server
 import Omniscient.Server.Types
-import Database.Persist
+-- import Database.Persist
 import Database.Persist.Sql (ConnectionPool)
-import Database.Persist.Sqlite
+import Database.Persist.Sqlite (createSqlitePool)
+import Database.Esqueleto
 import Control.Monad.Reader
 import Control.Monad.Logger
 import Network.Socket
@@ -14,57 +16,53 @@ import Data.Time
 
 import Test.Hspec
 
-setupPool :: IO ConnectionPool
-setupPool = do
+host :: SockAddr
+host = SockAddrInet 1234 $ tupleToHostAddress (192, 168, 1, 100)
+
+setupConnection :: IO ConnectionPool
+setupConnection = do
     pool <- runStderrLoggingT $ createSqlitePool "test.db" 5
     runSqlPool (runMigration migrateAll) pool
+    -- Empty the database
+    flip runSqlPool pool $ do
+        delete $ from $ \(event :: SqlExpr (Entity Event)) -> return ()
+        delete $ from $ \(app   :: SqlExpr (Entity App))   -> return ()
     return pool
 
-runTest test = runIO $ do
-    pool <- setupPool
+runTest test = join $ runIO $ do
+    pool <- setupConnection
     runReaderT (runStderrLoggingT test) pool
 
 testNewAppHandler = undefined
 
 testUpdateHandler = undefined
 
-testQueryHandler :: Spec
-testQueryHandler = do
-    (a, b, c) <- runTest $ do
-        startTime <- liftIO $ getCurrentTime
-        let host = SockAddrInet 1234 $ tupleToHostAddress (192, 168, 1, 100)
-        (NewAppResponse (Right appID)) <- newAppHandler (NewAppRequest "test") host
-        replicateM 10 $ updateHandler appID (UpdateRequest "a" ButtonClicked "") host
-        replicateM 20 $ updateHandler appID (UpdateRequest "b" ButtonClicked "") host
-        replicateM 30 $ updateHandler appID (UpdateRequest "c" ButtonClicked "") host
-        (QueryResponse (Right a)) <-
-            queryHandler appID $ QueryRequest $
-                Query (TopUsedFeatures 1)
-                    Nothing Nothing
-                    Nothing Nothing
-                    (Just startTime) Nothing
-        (QueryResponse (Right b)) <-
-            queryHandler appID $ QueryRequest $
-                Query (TopUsedFeatures 2)
-                    Nothing Nothing
-                    Nothing Nothing
-                    (Just startTime) Nothing
-        (QueryResponse (Right c)) <-
-            queryHandler appID $ QueryRequest $
-                Query (TopUsedFeatures 3)
-                    Nothing Nothing
-                    Nothing Nothing
-                    (Just startTime) Nothing
-        return (a, b, c)
-    describe "testQueryHandler" $ do
-        it "a should be ButtonClicked \"c\" 30" $
-            a `shouldBe` UsedFeaturesResult [(ButtonClicked, "c", 30)]
-        it "b should be ButtonClicked \"c\" 30, ButtonClicked \"b\" 20" $
-            b `shouldBe` UsedFeaturesResult [(ButtonClicked, "c", 30), (ButtonClicked, "b", 20)]
-        it "c should be ButtonClicked \"c\" 30, ButtonClicked \"b\" 20, ButtonClicked, \"a\" 10" $
-            c `shouldBe` UsedFeaturesResult [(ButtonClicked, "c", 30), (ButtonClicked, "b", 20), (ButtonClicked, "a", 10)]
+testGetTopUsedFeatures :: Spec
+testGetTopUsedFeatures = runTest $ do
+    startTime <- liftIO $ getCurrentTime
+    (NewAppResponse (Right appID)) <- newAppHandler (NewAppRequest "test") host
+    let button name value = UpdateRequest name ButtonClicked value
+        sendButton name value = updateHandler appID (button name value) host
+    replicateM 1 $ sendButton "a" "1"
+    replicateM 2 $ sendButton "b" "1"
+    replicateM 3 $ sendButton "c" "1"
+    let getTopUsed i = queryHandler appID $ QueryRequest $
+            Query (TopUsedFeatures i)
+            Nothing Nothing Nothing Nothing
+            (Just startTime) Nothing
+    (QueryResponse (Right a)) <- getTopUsed 1
+    (QueryResponse (Right b)) <- getTopUsed 2
+    (QueryResponse (Right c)) <- getTopUsed 3
+    let clicked name cnt = (ButtonClicked, name, cnt)
+    return $ describe "testGetTopUsedFeatures" $ do
+        it "a should be ButtonClicked \"c\" 3" $
+            a `shouldBe` UsedFeaturesResult [clicked "c" 3]
+        it "b should be ButtonClicked \"c\" 3, ButtonClicked \"b\" 2" $
+            b `shouldBe` UsedFeaturesResult [clicked "c" 3, clicked "b" 2]
+        it "c should be ButtonClicked \"c\" 3, ButtonClicked \"b\" 2, ButtonClicked, \"a\" 1" $
+            c `shouldBe` UsedFeaturesResult [clicked "c" 3, clicked "b" 2, clicked "a" 1]
 
 
 main :: IO ()
 main = hspec $ do
-    testQueryHandler
+    testGetTopUsedFeatures
