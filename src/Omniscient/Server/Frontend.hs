@@ -37,6 +37,9 @@ home = do
             ul $ forM_ apps $ \(Value appName) ->
                 a ! href (stringValue $ "./view/" <> appName) $ li $ toHtml appName
 
+include :: String -> Html
+include path = H.script ! src (stringValue path) $ toHtml ""
+
 view :: Omni app => String -> app Html
 view appName = do
     maybeAppEntity <- db.getBy $ UniqueApp appName
@@ -61,7 +64,10 @@ view appName = do
                                 td $ toHtml name
                                 td $ toHtml $ show cnt
             return $ docTypeHtml $ do
-                header $ H.title $ toHtml $ "Omniscient - " <> appName
+                header $ do
+                    H.title $ toHtml $ "Omniscient - " <> appName
+                    include "https://d3js.org/d3.v4.min.js"
+                    include "/static/view.js"
                 body $ do
                     h1 $ toHtml appName
                     featureListAsTable "Top 10 features" topFeatures
