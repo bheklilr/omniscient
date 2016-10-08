@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeOperators #-}
 module Omniscient.Server
@@ -22,6 +23,7 @@ import Database.Persist.Sql hiding ((==.), (<.), (>.))
 import Network.Wai.Handler.Warp as Warp
 
 import Servant
+import Servant.JS
 
 import Omniscient.Server.Types
 import Omniscient.Server.Models
@@ -36,12 +38,12 @@ omniscientServer
     =    backend
     :<|> frontend
 
-
 runOmniscientServer :: Port -> ConnectionPool -> IO ()
-runOmniscientServer port pool =
+runOmniscientServer port pool = do
+    writeJSForAPI backendAPI vanillaJS "static/api.js"
     Warp.run port
-        $ serve omniscientAPI
-        $ enter unwrapOmniscientT omniscientServer
+        $ serve (Proxy :: Proxy (OmniscientAPI :<|> ("static" :> Raw)))
+        $ enter unwrapOmniscientT omniscientServer :<|> serveDirectory "static"
     where
         unwrapOmniscientT' :: forall a. OmniscientT IO a -> Handler a
         unwrapOmniscientT' app = do

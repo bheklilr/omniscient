@@ -34,6 +34,7 @@ library
                         network,
                         servant,
                         servant-server,
+                        servant-js,
                         servant-blaze,
                         blaze-html,
                         blaze-markup,

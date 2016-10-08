@@ -65,5 +65,5 @@ view appName = do
                 body $ do
                     h1 $ toHtml appName
                     featureListAsTable "Top 10 features" topFeatures
-                    -- br
+                    br
                     featureListAsTable "Bottom 10 features" leastFeatures

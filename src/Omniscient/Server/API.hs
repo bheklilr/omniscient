@@ -5,6 +5,7 @@ module Omniscient.Server.API
     , UpdateAPI
     , QueryAPI
     , BackendAPI
+    , backendAPI
     , FrontendAPI
     , OmniscientAPI
     , omniscientAPI
@@ -51,6 +52,9 @@ type BackendAPI
     =    NewAppAPI
     :<|> UpdateAPI
     :<|> QueryAPI
+
+backendAPI :: Proxy BackendAPI
+backendAPI = Proxy
 
 type Home = Get '[HTML] Html
 type View = "view" :> Capture "appName" String :> Get '[HTML] Html
