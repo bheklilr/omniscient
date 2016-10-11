@@ -42,8 +42,16 @@ data Evt
     = ButtonClicked
     | MenuClicked
     | TextEdited
+    | OptionSelected
+    | WidgetUsed
     | ErrorDisplayed
     | ProgramCrashed
+    | MyCpuUsage
+    | CpuUtilization
+    | MyMemUsage
+    | MemUtilization
+    | DiskSpaceUsed
+    | DiskSpaceAvailable
     deriving (Eq, Show, Ord, Enum, Bounded, Generic, ToJSON, FromJSON)
 instance PersistField Evt where
     toPersistValue = toPersistValue . fromEnum
